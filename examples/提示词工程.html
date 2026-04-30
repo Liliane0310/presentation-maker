@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>提示词工程是什么，怎么学，怎么用</title>
+<style>
+  :root{
+    --paper:#fffdf8;
+    --ink:#1f2937;
+    --muted:#5b6470;
+    --accent:#8f4d2e;
+    --accent-soft:#f3e6da;
+    --line:#d8d0c4;
+    --shadow:0 24px 60px rgba(88,59,34,.12);
+    --font:"XiaoLai","Xiaolai","Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 0% 0%, rgba(202,141,107,.18), transparent 60%),
+      linear-gradient(135deg,#f4ede4 0%,#efe7db 50%,#f7f2eb 100%);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    pointer-events:none;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(143,77,46,.03) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(143,77,46,.02) 0 1px, transparent 1px 4px);
+    mix-blend-mode:multiply;
+    z-index:0;
+  }
+  .stage{
+    position:relative;
+    z-index:1;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:56px 24px 120px;
+  }
+  .slide{
+    display:none;
+    width:min(1040px,100%);
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:64px 72px;
+    position:relative;
+  }
+  .slide.active{display:block;animation:fade .45s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  h1{font-size:3.3rem;line-height:1.1;margin:0 0 18px;font-weight:800;letter-spacing:.5px}
+  h2{
+    font-size:1.9rem;color:var(--accent);margin:0 0 24px;
+    display:flex;align-items:center;gap:14px;font-weight:800;
+  }
+  h2::before{
+    content:"";display:inline-block;width:22px;height:10px;border-radius:6px;
+    background:linear-gradient(90deg,var(--accent),#d2a384);
+  }
+  h3{font-size:1.25rem;margin:18px 0 8px;color:var(--ink)}
+  h4{margin:0 0 8px;color:var(--accent);font-size:1.05rem}
+  p{font-size:1.08rem;line-height:1.8;color:var(--ink);margin:10px 0}
+  .muted{color:var(--muted)}
+  .kicker{letter-spacing:6px;color:var(--accent);font-weight:700;text-transform:uppercase;font-size:.85rem;margin-bottom:18px}
+  .big{font-size:1.35rem;line-height:1.8}
+  ul.emoji{list-style:none;padding:0;margin:8px 0}
+  ul.emoji li{
+    padding:10px 0 10px 2px;
+    border-bottom:1px dashed var(--line);
+    font-size:1.05rem;line-height:1.7;
+  }
+  ul.emoji li:last-child{border-bottom:none}
+  blockquote{
+    margin:18px 0;padding:16px 20px;
+    border-left:6px solid var(--accent);
+    background:rgba(143,77,46,.06);
+    border-radius:12px;color:var(--ink);
+    font-size:1.05rem;line-height:1.75;
+  }
+  code,kbd,pre{
+    font-family:var(--mono);
+  }
+  code,kbd{
+    font-size:.95em;background:var(--accent-soft);padding:2px 8px;border-radius:6px;color:#5b2e17
+  }
+  kbd{border:1px solid var(--line);box-shadow:0 2px 0 var(--line)}
+  pre{
+    margin:14px 0 0;
+    padding:16px 18px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(88,59,34,.06);
+    font-size:.95rem;
+    line-height:1.7;
+    color:#4a2c1e;
+    white-space:pre-wrap;
+  }
+  .grid{display:grid;gap:18px}
+  .grid.c2{grid-template-columns:1fr 1fr}
+  .grid.c3{grid-template-columns:repeat(3,1fr)}
+  .grid.c4{grid-template-columns:repeat(2,1fr)}
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;box-shadow:0 6px 18px rgba(88,59,34,.06)
+  }
+  .card p{margin:0;font-size:.98rem;color:var(--muted)}
+  table{
+    width:100%;border-collapse:separate;border-spacing:0;margin:12px 0;
+    border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff
+  }
+  th,td{padding:12px 14px;text-align:left;font-size:1rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--accent-soft);color:var(--accent);font-weight:700}
+  tr:last-child td{border-bottom:none}
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0}
+  .node{
+    padding:12px 18px;background:#fff;border:1.5px solid var(--accent);
+    border-radius:14px;color:var(--accent);font-weight:700;
+    box-shadow:0 4px 0 var(--accent-soft);
+  }
+  .arrow{color:var(--accent);font-size:1.4rem;font-weight:700}
+  .prompt-box{
+    padding:18px 20px;
+    background:#fff;
+    border:1px dashed var(--line);
+    border-radius:14px;
+    color:#4d5560;
+    line-height:1.8;
+    font-size:1rem;
+  }
+  .prompt-label{
+    display:inline-block;
+    margin-bottom:10px;
+    padding:4px 10px;
+    border-radius:999px;
+    background:var(--accent-soft);
+    color:var(--accent);
+    font-size:.84rem;
+    font-weight:700;
+  }
+  .controls{
+    position:fixed;left:0;right:0;bottom:20px;z-index:10;
+    display:flex;justify-content:center;align-items:center;gap:14px;
+  }
+  .btn{
+    font-family:var(--font);
+    padding:10px 18px;border-radius:999px;border:1px solid var(--line);
+    background:var(--paper);color:var(--ink);cursor:pointer;
+    box-shadow:0 6px 16px rgba(88,59,34,.1);font-size:1rem;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .pager{
+    background:var(--paper);border:1px solid var(--line);
+    padding:8px 16px;border-radius:999px;font-family:var(--mono);color:var(--muted)
+  }
+  .progress{
+    position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),#d2a384);
+    width:0;transition:width .3s ease;z-index:20;
+  }
+  .notes{display:none}
+  @media (max-width:720px){
+    .slide{padding:40px 24px}
+    h1{font-size:2.2rem}
+    .grid.c2,.grid.c3,.grid.c4{grid-template-columns:1fr}
+    table,tbody,tr,td,th{display:block;width:100%}
+    th{border-bottom:none}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="slide-number" id="slideNum" style="position:fixed;bottom:20px;right:30px;font-size:13px;font-family:var(--mono);color:var(--muted);z-index:100"></div>
+<div class="stage">
+
+  <section class="slide active">
+    <div class="kicker">Prompt Engineering Lecture</div>
+    <h1>提示词工程是什么，<br/>怎么学，怎么用</h1>
+    <p class="big muted">给新手的实战入门：不靠魔法咒语，而是学会把任务说清楚、拆清楚、约束清楚。</p>
+    <blockquote>提示词工程不是“会说漂亮话”，而是“让模型更稳定地帮你完成任务”。</blockquote>
+    <div class="notes">很多人第一次接触提示词工程，会有两个极端印象。一个极端是觉得这东西特别玄，像背口诀一样；另一个极端是觉得这不就是会聊天吗，好像没什么可学的。今天这份分享想做的，就是把这两种误解一起拆开。<br><br>你可以先记住一个最朴素的定义：提示词工程不是写神秘指令，而是把任务交代清楚。你让一个实习生做事，如果只说一句“你看着办”，结果大概率会飘；但如果你把目标、背景、标准和输出格式说清楚，质量就会稳定很多。模型也是一样。<br><br>所以接下来这 14 页，我们不会堆术语，而是用案例把它讲成一套你今天听完、明天就能用起来的方法。</div>
+  </section>
+
+  <section class="slide">
+    <h2>01 · 为什么同一个模型，有人说它神，有人说它笨？</h2>
+    <ul class="emoji">
+      <li>同一个模型，输入不同，结果可能像两个产品。</li>
+      <li>多数问题不在“模型不会”，而在“任务没有被说清楚”。</li>
+      <li>提示词工程解决的，不是智商问题，而是沟通问题。</li>
+    </ul>
+    <blockquote>别急着评价模型水平，先检查我们有没有把任务交代明白。</blockquote>
+    <div class="notes">先用一个大家都很熟悉的场景开头。你可能见过这样的对话：一个人说某个模型太强了，写方案、做总结、出结构都很顺；另一个人说这个模型根本不行，写得又空又乱。问题来了，难道他们用的不是同一个模型吗？<br><br>很多时候真不是模型突然时好时坏，而是输入信息差太大了。有人只说“帮我写一个方案”，有人会补充受众是谁、要解决什么问题、语气是正式还是轻松、输出要不要分点。后者不是更会施法，而是更会交代任务。<br><br>所以提示词工程的起点，不是研究模型有多神秘，而是承认一件很朴素的事：人和模型之间，也需要清晰沟通。接下来我们就把“清晰”到底是什么，一层层拆开。</div>
+  </section>
+
+  <section class="slide">
+    <h2>02 · 白话解释：什么叫提示词工程</h2>
+    <p class="big">提示词工程，就是把一个模糊想法，变成模型能稳定执行的任务说明书。</p>
+    <div class="flow">
+      <div class="node">想法</div><span class="arrow">→</span>
+      <div class="node">拆任务</div><span class="arrow">→</span>
+      <div class="node">补约束</div><span class="arrow">→</span>
+      <div class="node">定输出</div>
+    </div>
+    <blockquote>说白了，它像写需求，不像念咒语。</blockquote>
+    <div class="notes">如果只保留一句定义，我建议你记这句：提示词工程，就是把一个模糊想法，整理成模型可以稳定执行的任务说明书。注意这里的关键词不是“高级”，而是“稳定”。<br><br>为什么我说它像写需求？因为你真正做的事情，通常不是凭灵感凑一句话，而是一步步把任务说完整。先说明你要什么，再补充背景，再告诉它限制条件，最后规定输出长什么样。这个过程很像你给同事写需求，或者给外包提要求。<br><br>所以提示词工程并不神秘。它本质上是在做任务设计和沟通设计。接下来我们继续往前推一步，看它为什么值得学，因为很多人会觉得“能用就行，何必这么麻烦”。</div>
+  </section>
+
+  <section class="slide">
+    <h2>03 · 为什么它值得学</h2>
+    <div class="grid c3">
+      <div class="card">
+        <h4>质量更稳</h4>
+        <p>减少模型自由发挥的空间，让结果更接近你的目标，而不是靠运气撞对。</p>
+      </div>
+      <div class="card">
+        <h4>返工更少</h4>
+        <p>前面多交代一点，后面少来回重做，尤其适合总结、写作、分析类任务。</p>
+      </div>
+      <div class="card">
+        <h4>结果可复用</h4>
+        <p>一旦结构化写好，就能重复给自己、同事、不同模型继续用。</p>
+      </div>
+    </div>
+    <div class="notes">很多人一听到“工程”两个字就会紧张，觉得是不是要学很复杂的东西。其实提示词工程值不值得学，关键看它能不能帮你省时间。答案通常是能。<br><br>第一，它让质量更稳。你不再靠模型猜你的意思，而是主动收窄它的发挥范围。第二，它让返工更少。很多低效不是模型差，而是我们先给了一个糊需求，然后再一轮轮补救。第三，它让结果可复用。一个写得好的提示词，不只是这次用，之后换人、换模型、换场景，通常都还能继续用。<br><br>所以它真正的价值不是“炫技”，而是把 AI 使用从偶尔灵光一现，变成一种可重复的方法。接下来我们就具体拆，一个好提示词通常由哪几块组成。</div>
+  </section>
+
+  <section class="slide">
+    <h2>04 · 一个好提示词，通常有哪五块</h2>
+    <div class="flow">
+      <div class="node">目标</div><span class="arrow">→</span>
+      <div class="node">上下文</div><span class="arrow">→</span>
+      <div class="node">约束</div><span class="arrow">→</span>
+      <div class="node">输出格式</div><span class="arrow">→</span>
+      <div class="node">评判标准</div>
+    </div>
+    <div class="grid c2">
+      <div class="card"><h4>目标</h4><p>你到底要它做什么，是总结、写作、比较，还是提出建议。</p></div>
+      <div class="card"><h4>上下文</h4><p>任务发生在什么背景里，受众是谁，材料来自哪里。</p></div>
+      <div class="card"><h4>约束</h4><p>字数、语气、范围、不能做什么，都属于约束。</p></div>
+      <div class="card"><h4>输出格式</h4><p>段落、表格、要点清单、JSON，这些都会显著影响可用性。</p></div>
+    </div>
+    <div class="notes">一条好提示词，通常不是靠某个神奇句式，而是把五类信息讲全。第一类是目标，也就是“你要它干嘛”。第二类是上下文，告诉它这件事发生在哪里、写给谁看。第三类是约束，比如字数、语气、边界、禁区。第四类是输出格式，你想要自然段，还是表格，还是行动项列表。第五类是评判标准，也就是怎样算做得好。<br><br>你会发现，这五块信息听起来都很像我们平时做事前的任务准备。区别只是以前我们把这些默认留在脑子里，现在要把它写出来。<br><br>接下来我们别停在理论上，直接看一个很典型的对比：差提示词和好提示词，到底差在哪里。</div>
+  </section>
+
+  <section class="slide">
+    <h2>05 · 差提示词 vs 好提示词</h2>
+    <table>
+      <tr><th>维度</th><th>差提示词</th><th>好提示词</th></tr>
+      <tr><td>目标</td><td>帮我写一下</td><td>写一篇给零基础读者看的 AI 入门介绍</td></tr>
+      <tr><td>上下文</td><td>没有</td><td>用于公众号首发，读者偏职场新人</td></tr>
+      <tr><td>约束</td><td>没有</td><td>800 字内，语气轻松，不堆术语</td></tr>
+      <tr><td>输出格式</td><td>自由发挥</td><td>标题 + 3 个小节 + 结尾行动建议</td></tr>
+      <tr><td>判断标准</td><td>靠感觉</td><td>读者 3 分钟内能看懂并记住 3 个点</td></tr>
+    </table>
+    <blockquote>模型最怕的不是难题，而是“看起来简单，其实没说清”的题。</blockquote>
+    <div class="notes">这一页特别重要，因为很多人会说，我已经会写提示词了啊，我也会打一段话给模型。真正的差距，往往不是有没有写，而是信息有没有完整。<br><br>左边这种“帮我写一下”，在人和人沟通里都容易出问题，更别说给模型。它不知道写给谁，不知道写多长，不知道什么叫写得好，于是只能猜。右边这种结构化提示词，未必很长，但它几乎把关键空位都填上了。这样模型不是更聪明了，而是更少瞎猜了。<br><br>你可以把提示词理解成舞台上的灯光。灯一暗，模型就会到处摸索；灯一亮，它就知道该往哪里走。接下来我们看第一个改写案例，把模糊请求改成可执行请求。</div>
+  </section>
+
+  <section class="slide">
+    <h2>06 · 案例 1：把模糊请求改成可执行请求</h2>
+    <div class="grid c2">
+      <div class="card">
+        <h4>原始说法</h4>
+        <div class="prompt-box">
+          <span class="prompt-label">Before</span><br/>
+          写一篇介绍 AI 的文章。
+        </div>
+      </div>
+      <div class="card">
+        <h4>改写后</h4>
+        <div class="prompt-box">
+          <span class="prompt-label">After</span><br/>
+          请写一篇给零基础职场新人看的 AI 入门文章，800 字以内，语气轻松。结构分成“AI 是什么”“现在为什么值得学”“新手第一步怎么开始”三节，结尾给出 3 条可执行建议，避免使用过多专业术语。
+        </div>
+      </div>
+    </div>
+    <div class="notes">我们先看一个非常典型的写作场景。原始需求只有一句话，叫“写一篇介绍 AI 的文章”。这句话的问题不是太短，而是留白太多。写给谁？写多长？是科普、营销还是观点文？模型完全不知道。<br><br>改写后，我们补进去了几个关键信息。第一，受众是零基础职场新人。第二，长度控制在 800 字以内。第三，结构明确分成三节。第四，语气轻松，少术语。第五，结尾要给行动建议。你看，这不是把一句话写复杂了，而是把本来藏在脑子里的要求写出来。<br><br>真正好用的提示词，常常就像这样，没有神秘技巧，只有信息补齐。下一页我们继续拆，为什么这种改写之后，结果会明显更好。</div>
+  </section>
+
+  <section class="slide">
+    <h2>07 · 为什么这个改写结果会更好</h2>
+    <div class="grid c3">
+      <div class="card">
+        <h4>减少猜测</h4>
+        <p>受众和目的明确后，模型不需要乱猜写作深浅和语气。</p>
+      </div>
+      <div class="card">
+        <h4>方便校验</h4>
+        <p>你能立刻判断它有没有按三节结构、800 字以内、少术语来写。</p>
+      </div>
+      <div class="card">
+        <h4>方便迭代</h4>
+        <p>如果还不够好，你只需继续调具体项，而不是整篇推倒重来。</p>
+      </div>
+    </div>
+    <blockquote>好提示词的价值，不只是第一次更准，还在于第二次更好改。</blockquote>
+    <div class="notes">这一页想让大家看到，结构化提示词的好处不只是“第一次写得更像样”，而是它天然更容易继续优化。<br><br>第一，减少猜测。模型最容易出偏差的时候，就是面对一大堆空白。你一旦把受众、目标和语气说清楚，它的选择空间就收窄了。第二，方便校验。你不需要模糊地说“总觉得不太对”，而是可以明确指出：字数超了，术语多了，结构不对。第三，方便迭代。下一轮你可以只调“更口语一点”或者“结尾加案例”，而不是从零再来。<br><br>这就像装修时先出图纸。图纸不保证一次完美，但能让你知道该改哪里。接下来我们再看第二种特别常见的场景：不是内容不对，而是输出形式不好用。</div>
+  </section>
+
+  <section class="slide">
+    <h2>08 · 案例 2：让模型按格式输出</h2>
+    <div class="grid c2">
+      <div class="card">
+        <h4>自由输出的问题</h4>
+        <p>“帮我总结这次会议”常常会得到一大段话，能读懂，但不方便拿去执行。</p>
+        <pre>总结一下今天的会议内容。</pre>
+      </div>
+      <div class="card">
+        <h4>格式化后的提示</h4>
+        <pre>请总结这次会议，并按 Markdown 输出：
+1. 会议目标
+2. 关键结论
+3. 待办事项（负责人 / 截止时间）
+4. 风险与待确认问题</pre>
+      </div>
+    </div>
+    <blockquote>很多时候你缺的不是“内容”，而是“能直接拿来用的结构”。</blockquote>
+    <div class="notes">第二个案例特别贴近办公场景。很多人让模型“总结会议”，结果拿到一大段自然语言。内容可能不算差，但到了真正执行时，你还得自己再拆一遍：目标是什么，谁负责什么，哪些问题还没定。<br><br>这时候提示词工程最有用的一个动作，就是先规定输出格式。你不是只让它“总结”，而是明确要求它按 Markdown，把会议目标、关键结论、待办事项、风险点分别列出来。这样出来的结果，不只是更整齐，而是更容易直接复制到文档、项目管理工具或者群消息里。<br><br>所以很多提示词优化，并不是让模型更会想，而是让结果更好用。下一页我们再看一个更进一步的动作：在回答之前，先让模型按步骤思考。</div>
+  </section>
+
+  <section class="slide">
+    <h2>09 · 案例 3：先让模型思考，再让模型回答</h2>
+    <p class="big">当任务需要判断和比较时，先让模型列出评估维度，再给结论，通常比直接问答案更稳。</p>
+    <div class="grid c2">
+      <div class="card">
+        <h4>直接问</h4>
+        <div class="prompt-box">这三个产品方案哪个更好？</div>
+      </div>
+      <div class="card">
+        <h4>拆步骤后</h4>
+        <div class="prompt-box">请先列出评估这三个方案的 4 个维度，再逐一比较，最后给出推荐方案和理由。</div>
+      </div>
+    </div>
+    <div class="notes">第三个案例会让大家看到，提示词工程不只是补信息，还可以重新安排思考顺序。比如你直接问“这三个产品方案哪个更好”，模型当然也会答，但很容易凭某一个印象点快速下结论。<br><br>如果你先要求它列出评估维度，比如成本、实施周期、风险、可扩展性，再逐一比较，最后给推荐方案，结果通常会更稳。因为你等于先帮它把判断框架搭起来，再让它往里填内容。<br><br>这个技巧特别适合比较、诊断、分析和决策类任务。它的核心不是让模型“想得更深”，而是减少它跳步的概率。理解了这一点之后，我们就可以顺势看一组新手最常踩的坑，很多坑正是因为没有做这类拆分。</div>
+  </section>
+
+  <section class="slide">
+    <h2>10 · 新手最常见的 4 个误区</h2>
+    <div class="grid c4">
+      <div class="card"><h4>一次塞太多要求</h4><p>信息很多，但没有层次，模型抓不住主次，结果反而更乱。</p></div>
+      <div class="card"><h4>只提目标，不提标准</h4><p>说了“要一篇文章”，没说什么叫好，模型只能按平均水平发挥。</p></div>
+      <div class="card"><h4>不给上下文</h4><p>模型不知道你的材料来源、使用场景和受众，很容易答偏。</p></div>
+      <div class="card"><h4>把 prompt 当咒语</h4><p>迷信某个万能模板，却忽视任务本身的差异和真实需求。</p></div>
+    </div>
+    <div class="notes">新手学提示词工程，最容易踩的坑其实非常固定。第一种是一次塞太多要求，恨不得一条 prompt 里把所有愿望都实现，但没有层次，模型反而抓不到重点。第二种是只提目标，不提标准，比如只说“写个方案”，却不说方案要给谁看、做到什么程度。第三种是不给上下文，模型只能在空中接任务。第四种最典型，就是把 prompt 当魔法咒语，觉得只要套某个网上模板，所有问题都能自动解决。<br><br>真正有效的方法从来不是背口诀，而是理解任务。你面对的是写作任务，就强调受众和结构；你面对的是分析任务，就强调维度和标准。下一页我会给一个新手可以直接套用的万能框架，让你有一个稳定起点。</div>
+  </section>
+
+  <section class="slide">
+    <h2>11 · 一个新手可直接套用的万能框架</h2>
+    <pre>你现在要扮演的角色是：
+我要你完成的任务是：
+任务背景 / 目标受众是：
+请遵守这些限制条件：
+请按这个格式输出：
+判断结果是否合格的标准是：</pre>
+    <blockquote>不会写复杂 prompt 没关系，先把这 6 个空位填完整，质量通常就会上一个台阶。</blockquote>
+    <div class="notes">如果你今天只想带走一个能立刻用的模板，我建议就是这一页。它不是最花哨的，但很稳。你只需要按顺序填六个空位。第一，角色是什么。第二，任务是什么。第三，背景和受众是什么。第四，有哪些限制。第五，输出长什么样。第六，怎样算合格。<br><br>为什么这个框架有效？因为它刚好覆盖了我们前面讲过的几类核心信息。它不会替你思考业务问题，但能提醒你把关键空位补齐。对新手来说，这比追求所谓高级技巧更重要。<br><br>当然，有模板还不够，真正好用还要会迭代。所以下一页我想讲的不是“再多一个模板”，而是一套实际工作中更稳的使用流程。</div>
+  </section>
+
+  <section class="slide">
+    <h2>12 · 实战工作流：不要一上来就追求完美</h2>
+    <div class="flow">
+      <div class="node">先出草稿</div><span class="arrow">→</span>
+      <div class="node">看缺口</div><span class="arrow">→</span>
+      <div class="node">补约束</div><span class="arrow">→</span>
+      <div class="node">定格式</div><span class="arrow">→</span>
+      <div class="node">再迭代</div>
+    </div>
+    <div class="grid c2">
+      <div class="card"><h4>第一轮</h4><p>快速验证方向对不对，不求完美，只看模型理解是否跑偏。</p></div>
+      <div class="card"><h4>第二轮以后</h4><p>针对偏差精准补充信息，而不是情绪化地说“再高级一点”。</p></div>
+    </div>
+    <div class="notes">很多人用 AI 最容易犯的另一个错误，是第一轮就想要满分答案。结果一旦不满意，就开始怀疑模型，或者疯狂换 prompt。更稳的方式，其实是把它当成一个迭代过程。<br><br>第一轮先出草稿，目的不是完美，而是判断方向有没有跑偏。比如它理解错了受众，或者输出形式不对。第二轮开始，再针对缺口补信息。是背景不够，就补背景；是结构太散，就定格式；是内容太虚，就加案例或标准。<br><br>这种做法的好处是，你每一轮都知道自己在改什么，而不是模糊地说“再好一点”。提示词工程的成熟感，很大一部分就来自这种可诊断、可修正的工作方式。最后两页，我们把今天的内容收成能带走的记忆点和行动建议。</div>
+  </section>
+
+  <section class="slide">
+    <h2>13 · 今天先带走 3 句话，再带走 4 个问题</h2>
+    <ul class="emoji">
+      <li>提示词工程的本质，是把任务交代清楚，不是寻找神秘咒语。</li>
+      <li>一个好 prompt 至少要补齐：目标、背景、约束、输出格式。</li>
+      <li>不会一次写对没关系，但要让每一轮迭代都有明确方向。</li>
+    </ul>
+    <h3>从今天开始，先问自己这 4 个问题</h3>
+    <ul class="emoji">
+      <li>我到底要它完成什么任务？</li>
+      <li>这件事的背景和受众是谁？</li>
+      <li>有哪些限制条件，哪些不要做？</li>
+      <li>我希望它最终按什么格式交付？</li>
+    </ul>
+    <blockquote>从今天开始，把每次提问都补齐目标、背景、约束、输出格式。</blockquote>
+    <p class="muted" style="text-align:center;margin-top:24px">讲清楚任务，往往比换更复杂的模型更先带来提升。</p>
+    <div class="notes">最后这一页，我想把今天的内容收成一个最容易执行的版本。先记住三句话。第一，提示词工程的本质，是把任务交代清楚，不是去找什么神秘咒语。第二，一个好 prompt 至少要把目标、背景、约束和输出格式补齐。第三，一次写不对很正常，但每一轮修改都要知道自己在改什么。<br><br>然后再带走四个问题：我要它做什么，背景和受众是谁，有哪些限制，最后要什么格式。你以后每次提问前，先把这四个空位补一补，效果通常就会明显提升。<br><br>所以今天的结尾不是让大家回去背模板，而是换一个习惯。只要你开始认真交代任务，提示词工程其实就已经开始发生了。</div>
+  </section>
+
+</div>
+
+<div class="controls">
+  <button class="btn" id="prev">← 上一页</button>
+  <div class="pager" id="pager">1 / 14</div>
+  <button class="btn" id="next">下一页 →</button>
+</div>
+
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const pager = document.getElementById('pager');
+  const progress = document.getElementById('progress');
+  const slideNum = document.getElementById('slideNum');
+  let current = 0, presenterWin = null;
+
+  function goto(n){
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
+    pager.textContent = (current + 1) + ' / ' + slides.length;
+    progress.style.width = ((current + 1) / slides.length * 100) + '%';
+    if(slideNum) slideNum.textContent = (current + 1) + ' / ' + slides.length;
+    location.hash = '/' + (current + 1);
+    if(presenterWin && !presenterWin.closed) updatePresenter();
+  }
+
+  prevBtn.onclick = () => goto(current - 1);
+  nextBtn.onclick = () => goto(current + 1);
+
+  function getTitle(idx){
+    const s = slides[idx];
+    const h = s.querySelector('h1') || s.querySelector('h2');
+    return h ? h.textContent.trim() : 'Slide ' + (idx + 1);
+  }
+
+  function getNotes(idx){
+    const n = slides[idx].querySelector('.notes');
+    return n ? n.innerHTML.trim() : '<em style="color:#999">(本页无讲稿)</em>';
+  }
+
+  function openPresenter(){
+    if(presenterWin && !presenterWin.closed){ presenterWin.focus(); return; }
+    presenterWin = window.open('', 'presenter', 'width=900,height=680,scrollbars=yes');
+    const doc = presenterWin.document;
+    doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>演讲者模式</title>
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{font-family:"XiaoLai","Xiaolai","Microsoft YaHei",system-ui,sans-serif;background:#1f2937;color:#fffdf8;padding:16px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr auto;gap:12px;height:100vh;overflow:hidden}
+      .card{background:#2d3748;border-radius:14px;overflow:hidden}
+      .card-header{padding:10px 16px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+      .h-current .card-header{background:#8f4d2e}
+      .h-next .card-header{background:#d2a384;color:#1f2937}
+      .h-script .card-header{background:#c4956a;color:#1f2937}
+      .h-timer .card-header{background:#f3e6da;color:#8f4d2e}
+      .card-body{padding:16px}
+      .slide-title{font-size:15px;color:#a0a0b0;margin-bottom:8px}
+      .slide-preview{font-size:20px;font-weight:700;color:#fffdf8}
+      #scriptBody{font-size:17px;line-height:1.85;color:#e8e0d8;overflow-y:auto;padding:16px;flex:1;min-height:0}
+      #scriptBody strong,#scriptBody b{color:#d2a384}
+      .timer-display{font-size:28px;font-weight:800;text-align:center;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#d2a384;padding:4px 0}
+      .timer-slide{text-align:center;font-size:13px;color:#a0a0b0;margin-bottom:4px}
+      .timer-btns{display:flex;gap:8px;justify-content:center;padding-bottom:4px}
+      .timer-btns button{padding:5px 14px;border:none;border-radius:6px;background:#3d4a5c;color:#fffdf8;font-size:12px;cursor:pointer;font-weight:600;transition:background .2s;font-family:inherit}
+      .timer-btns button:hover{background:#4d5a6c}
+    </style></head><body>
+      <div class="card h-current" style="grid-column:1"><div class="card-header">当前</div><div class="card-body"><div class="slide-title" id="pCurTitle"></div><div class="slide-preview" id="pCurPreview"></div></div></div>
+      <div class="card h-next" style="grid-column:2"><div class="card-header">下一页</div><div class="card-body"><div class="slide-title" id="pNextTitle"></div><div class="slide-preview" id="pNextPreview"></div></div></div>
+      <div class="card h-script" style="grid-column:1/3;display:flex;flex-direction:column;min-height:0;overflow:hidden"><div class="card-header">讲稿 / Speaker Script</div><div id="scriptBody"></div></div>
+      <div class="card h-timer" style="grid-column:1/3"><div class="card-header" style="padding:6px 16px;font-size:11px">计时器</div><div class="card-body" style="padding:6px 16px">
+        <div class="timer-slide" id="pSlideCount"></div>
+        <div class="timer-display" id="pTimer">00:00</div>
+        <div class="timer-btns"><button onclick="prev()">◀ 上一页</button><button onclick="resetTimer()">重置</button><button onclick="next()">下一页 ▶</button></div>
+      </div></div>
+    </body></html>`);
+    doc.close();
+
+    let startTime = Date.now();
+    presenterWin._timerInterval = setInterval(() => {
+      if(presenterWin.closed){ clearInterval(presenterWin._timerInterval); return; }
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      const el = presenterWin.document.getElementById('pTimer');
+      if(el) el.textContent = m + ':' + s;
+    }, 500);
+
+    presenterWin.resetTimer = () => { startTime = Date.now(); };
+    presenterWin.prev = () => { goto(current - 1); };
+    presenterWin.next = () => { goto(current + 1); };
+
+    presenterWin.document.addEventListener('keydown', (e) => {
+      if(e.key === 'ArrowRight') { goto(current + 1); }
+      else if(e.key === 'ArrowLeft') { goto(current - 1); }
+      else if(e.key === 'r' || e.key === 'R') { presenterWin.resetTimer(); }
+      else if(e.key === 'Escape') { presenterWin.close(); }
+    });
+
+    updatePresenter();
+  }
+
+  function updatePresenter(){
+    if(!presenterWin || presenterWin.closed) return;
+    const doc = presenterWin.document;
+    const cur = doc.getElementById('pCurTitle');
+    const curP = doc.getElementById('pCurPreview');
+    const nxtT = doc.getElementById('pNextTitle');
+    const nxtP = doc.getElementById('pNextPreview');
+    const script = doc.getElementById('scriptBody');
+    const count = doc.getElementById('pSlideCount');
+    if(cur) cur.textContent = 'Slide ' + (current + 1);
+    if(curP) curP.textContent = getTitle(current);
+    if(current < slides.length - 1){
+      if(nxtT) nxtT.textContent = 'Slide ' + (current + 2);
+      if(nxtP) nxtP.textContent = getTitle(current + 1);
+    } else {
+      if(nxtT) nxtT.textContent = '';
+      if(nxtP) nxtP.textContent = '— 最后一页 —';
+    }
+    if(script) script.innerHTML = getNotes(current);
+    if(count) count.textContent = 'Slide ' + (current + 1) + ' / ' + slides.length;
+  }
+
+  document.addEventListener('keydown', e => {
+    if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); goto(current + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goto(current - 1); }
+    else if(e.key === 'Home') goto(0);
+    else if(e.key === 'End') goto(slides.length - 1);
+    else if(e.key === 'f' || e.key === 'F'){
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    else if(e.key === 's' || e.key === 'S') openPresenter();
+  });
+
+  const hash = parseInt(location.hash.replace('#/', ''), 10);
+  if(hash >= 1 && hash <= slides.length) current = hash - 1;
+  goto(current);
+})();
+</script>
+</body>
+</html>

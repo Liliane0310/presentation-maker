@@ -1,0 +1,14 @@
+{
+  "name": "presentation-maker",
+  "version": "0.1.0",
+  "description": "生成教学科普型、自包含 HTML 演示稿（带演讲者模式、键盘翻页、纸感设计）。",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": ["演示", "PPT", "slides", "教学", "claude技能"],
+  "license": "MIT",
+  "author": "Liliane0310",
+  "files": ["index.js", "SKILL.md", "references/", "examples/"]
+}

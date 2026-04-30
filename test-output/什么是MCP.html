@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>什么是 MCP · 手绘纸感演示</title>
+<style>
+  :root{
+    --paper:#fffdf8;
+    --ink:#1f2937;
+    --muted:#5b6470;
+    --accent:#8f4d2e;
+    --accent-soft:#f3e6da;
+    --line:#d8d0c4;
+    --shadow:0 24px 60px rgba(88,59,34,.12);
+    --font:"XiaoLai","Xiaolai","小赖字体","Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 0% 0%, rgba(202,141,107,.18), transparent 60%),
+      linear-gradient(135deg,#f4ede4 0%,#efe7db 50%,#f7f2eb 100%);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    pointer-events:none;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(143,77,46,.03) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(143,77,46,.02) 0 1px, transparent 1px 4px);
+    mix-blend-mode:multiply;
+    z-index:0;
+  }
+  .progress{
+    position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),#d2a384);
+    width:0;transition:width .3s ease;z-index:20;
+  }
+  .slide-number{
+    position:fixed;bottom:20px;right:30px;font-size:13px;font-family:var(--mono);color:var(--muted);z-index:100
+  }
+  .stage{
+    position:relative;
+    z-index:1;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:56px 24px 120px;
+  }
+  .slide{
+    display:none;
+    width:min(1040px,100%);
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:64px 72px;
+    position:relative;
+  }
+  .slide.active{display:block;animation:fade .45s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  h1{font-size:3.3rem;line-height:1.1;margin:0 0 18px;font-weight:800;letter-spacing:.5px}
+  h2{
+    font-size:1.9rem;color:var(--accent);margin:0 0 24px;
+    display:flex;align-items:center;gap:14px;font-weight:800;
+  }
+  h2::before{
+    content:"";display:inline-block;width:22px;height:10px;border-radius:6px;
+    background:linear-gradient(90deg,var(--accent),#d2a384);
+  }
+  h3{font-size:1.25rem;margin:18px 0 8px;color:var(--ink)}
+  p{font-size:1.08rem;line-height:1.8;color:var(--ink);margin:10px 0}
+  .muted{color:var(--muted)}
+  .kicker{letter-spacing:6px;color:var(--accent);font-weight:700;text-transform:uppercase;font-size:.85rem;margin-bottom:18px}
+  .big{font-size:1.35rem;line-height:1.8}
+  ul.emoji{list-style:none;padding:0;margin:8px 0}
+  ul.emoji li{
+    padding:10px 0 10px 2px;
+    border-bottom:1px dashed var(--line);
+    font-size:1.05rem;line-height:1.7;
+  }
+  ul.emoji li:last-child{border-bottom:none}
+  blockquote{
+    margin:18px 0;padding:16px 20px;
+    border-left:6px solid var(--accent);
+    background:rgba(143,77,46,.06);
+    border-radius:12px;color:var(--ink);
+    font-size:1.05rem;line-height:1.75;
+  }
+  code,kbd{font-family:var(--mono);font-size:.95em;background:var(--accent-soft);padding:2px 8px;border-radius:6px;color:#5b2e17}
+  kbd{border:1px solid var(--line);box-shadow:0 2px 0 var(--line)}
+  .grid{display:grid;gap:18px}
+  .grid.c2{grid-template-columns:1fr 1fr}
+  .grid.c3{grid-template-columns:repeat(3,1fr)}
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;box-shadow:0 6px 18px rgba(88,59,34,.06)
+  }
+  .card h4{margin:0 0 8px;color:var(--accent);font-size:1.05rem}
+  .card p{margin:0;font-size:.98rem;color:var(--muted)}
+  table{
+    width:100%;border-collapse:separate;border-spacing:0;margin:12px 0;
+    border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff
+  }
+  th,td{padding:12px 14px;text-align:left;font-size:1rem;border-bottom:1px solid var(--line)}
+  th{background:var(--accent-soft);color:var(--accent);font-weight:700}
+  tr:last-child td{border-bottom:none}
+  .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0}
+  .node{
+    padding:12px 18px;background:#fff;border:1.5px solid var(--accent);
+    border-radius:14px;color:var(--accent);font-weight:700;
+    box-shadow:0 4px 0 var(--accent-soft);
+  }
+  .arrow{color:var(--accent);font-size:1.4rem;font-weight:700}
+  .controls{
+    position:fixed;left:0;right:0;bottom:20px;z-index:10;
+    display:flex;justify-content:center;align-items:center;gap:14px;
+  }
+  .btn{
+    font-family:var(--font);
+    padding:10px 18px;border-radius:999px;border:1px solid var(--line);
+    background:var(--paper);color:var(--ink);cursor:pointer;
+    box-shadow:0 6px 16px rgba(88,59,34,.1);font-size:1rem;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .pager{
+    background:var(--paper);border:1px solid var(--line);
+    padding:8px 16px;border-radius:999px;font-family:var(--mono);color:var(--muted)
+  }
+  .notes{display:none}
+  @media (max-width:720px){
+    .slide{padding:40px 24px}
+    h1{font-size:2.2rem}
+    .grid.c2,.grid.c3{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="slide-number" id="slideNum"></div>
+<div class="stage">
+
+  <section class="slide active">
+    <div class="kicker">AI Infra · Lecture</div>
+    <h1>什么是 MCP？<br>—— 让模型学会“接工具”的通用接口</h1>
+    <p class="big muted">一份给初学者的纸感入门讲解：先搞懂它像什么、解决什么问题，再理解为什么它会越来越重要。</p>
+    <blockquote>“如果 Prompt 像你在和 AI 说话，MCP 更像是给 AI 装上一排可插拔的工具接口。”</blockquote>
+    <div class="notes">这一页先帮大家把陌生感降下来。很多人第一次听到 MCP，会本能觉得这是一个很底层、很工程的词，好像不写代码就没必要碰。<br><br>但今天我们不从协议细节讲起，而是先从感觉讲起。你可以先把 MCP 想成一排标准化接口，它让模型不只是会说话，还能更稳定地接上工具、读数据、做动作。<br><br>只要这个比喻先立住，后面你会发现，MCP 没那么玄。它真正回答的，是“模型怎么更像一个会干活的助手，而不只是一个会聊天的窗口”。</div>
+  </section>
+
+  <section class="slide">
+    <h2>01 · MCP 先用一句人话理解</h2>
+    <p class="big">MCP 可以先理解成一个<strong>模型和外部工具沟通的标准接口</strong>。它的重点不是“聪明”，而是“对接得稳、接法统一、换工具更方便”。</p>
+    <div class="flow">
+      <div class="node">模型 Model</div><span class="arrow">→</span>
+      <div class="node">MCP 接口</div><span class="arrow">→</span>
+      <div class="node">工具 / 数据源</div>
+    </div>
+    <blockquote>一句话：MCP 像插排标准，不决定电器有多强，但决定它们能不能顺利插上、一起工作。</blockquote>
+    <div class="notes">先别急着记全称，先记功能。MCP 最容易懂的方式，不是把它当一个高深词，而是把它当一个标准接头。<br><br>模型自己很会理解文本、生成文本，但它要想真正去搜索、改文件、查数据库、调接口，就需要一种稳定的接法。MCP 做的，就是把这种接法标准化。<br><br>所以它不直接决定模型有多聪明，但它会明显影响模型“能不能干活、能不能接更多工具、换工具时麻不麻烦”。这个感觉就像插排标准，不是电器本身，却很关键。</div>
+  </section>
+
+  <section class="slide">
+    <h2>02 · 它为什么会被需要</h2>
+    <div class="grid c3">
+      <div class="card"><h4>🔌 接法统一</h4><p>不用每接一个工具都重新造一套私有协议，减少重复接线。</p></div>
+      <div class="card"><h4>🧩 更容易组合</h4><p>搜索、文件、数据库、知识库这些能力更容易放进同一个助手里。</p></div>
+      <div class="card"><h4>🔁 更方便替换</h4><p>同类工具如果遵守同一路接口，后续切换和扩展都会轻一些。</p></div>
+    </div>
+    <div class="notes">为什么大家会开始重视这个词？因为模型一旦从聊天走向做事，接工具就不再是边角问题，而是主线问题。<br><br>第一，接法统一，意味着你不用每来一个工具就重新发明一套连接方式。第二，更容易组合，搜索、文件、知识库这些能力可以被更自然地放到一个系统里。第三，更方便替换，如果接口统一，后续你想换一个搜索服务，或者再加一个数据源，成本就没那么高。<br><br>所以 MCP 背后的价值，其实不是一个新名词，而是“让工具生态更容易长起来”。</div>
+  </section>
+
+  <section class="slide">
+    <h2>03 · 它和 Prompt、Skill、Workflow 的位置关系</h2>
+    <table>
+      <tr><th>概念</th><th>更像什么</th><th>主要回答什么问题</th></tr>
+      <tr><td>Prompt</td><td>一句请求</td><td>我要怎么把需求说清楚？</td></tr>
+      <tr><td>Skill</td><td>一个能力块</td><td>系统会做什么动作？</td></tr>
+      <tr><td>Workflow</td><td>一条工作线</td><td>这些能力按什么顺序串起来？</td></tr>
+      <tr><td>MCP</td><td>一套标准接头</td><td>模型怎么稳定接上外部工具和数据？</td></tr>
+    </table>
+    <blockquote>MCP 不直接替代这些概念，它更像下面那层“让连接变顺”的基础设施。</blockquote>
+    <div class="notes">这一页最重要的是定位。因为很多人一听 MCP，就会问它是不是 Prompt 的升级版，或者是不是 Workflow 的替代品。其实都不是。<br><br>Prompt 是你怎么说，Skill 是系统会做什么，Workflow 是这些能力怎么排顺序。而 MCP 更像下层那层连接规范，它回答的是：模型怎么稳定接到外面的世界。<br><br>所以它和前面几个词不是互相取代的关系，而是分工不同。你可以把它理解成底盘的一部分。它平时不一定最显眼，但一旦工具接得越来越多，它的重要性就会上来。</div>
+  </section>
+
+  <section class="slide">
+    <h2>04 · 一个最小使用场景</h2>
+    <p>假设你有一个 AI 助手，要帮你整理本地项目和知识库，链路可能长这样：</p>
+    <div class="flow">
+      <div class="node">用户提问</div><span class="arrow">→</span>
+      <div class="node">模型理解意图</div><span class="arrow">→</span>
+      <div class="node">通过 MCP 调文件 / 搜索工具</div><span class="arrow">→</span>
+      <div class="node">返回结果</div>
+    </div>
+<pre style="background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;overflow:auto;"><code style="font-family:var(--mono);font-size:.95rem;line-height:1.6;">用户：帮我找出这个项目里和登录有关的文件
+模型：判断需要“文件搜索”能力
+MCP：把请求转成标准工具调用
+工具：返回匹配文件列表
+模型：整理后回复给用户</code></pre>
+    <div class="notes">如果只讲概念，MCP 还是容易飘，所以这一页给一个最小使用场景。假设你有一个 AI 助手，要帮你查本地项目文件。用户发出请求后，模型先理解意图，判断这不是纯聊天，而是需要调用文件搜索能力。<br><br>接着，MCP 这一层会把这个请求按照标准方式转给工具，工具再把结果返回回来，最后模型把结果整理成人能读懂的话。<br><br>这就是为什么我说 MCP 更像接头层。它不抢模型的工作，也不抢工具的工作，而是让两边接得更顺、更稳、更可扩展。</div>
+  </section>
+
+  <section class="slide">
+    <h2>05 · 总结</h2>
+    <ul class="emoji">
+      <li>💡 MCP 可以先理解成模型和工具之间的标准接口。</li>
+      <li>📦 它解决的重点不是“更聪明”，而是“更好接工具”。</li>
+      <li>📌 它和 Prompt、Skill、Workflow 不是替代关系，而是分层关系。</li>
+      <li>🚀 工具越多、数据源越多，MCP 这种标准接法的价值就越明显。</li>
+    </ul>
+    <blockquote>最后一句：如果你希望 AI 不只是会回答，还能稳定做事，那你迟早会遇到 MCP 这一层。</blockquote>
+    <p class="muted" style="text-align:center;margin-top:24px">— 测试产物 · 默认教学科普型输出 —</p>
+    <div class="notes">最后收一下。今天这份内容不是为了让你把协议细节背下来，而是先把直觉立住。MCP 最值得记住的，不是它的缩写，而是它在系统里扮演的角色：标准化连接模型和工具。<br><br>只要这个感觉先有了，后面你再看到 MCP server、工具调用、外部数据接入这些词，就不会觉得它们完全陌生。因为你已经知道，它们大多都在回答同一个问题：怎么让模型不只会说，还能稳定干活。<br><br>从测试结果看，这个主题也很适合你这套 skill 的默认路数：概念先白话，结构先清楚，样式保持统一，讲稿也能直接讲。</div>
+  </section>
+
+</div>
+
+<div class="controls">
+  <button class="btn" id="prev">← 上一页</button>
+  <div class="pager" id="pager">1 / 5</div>
+  <button class="btn" id="next">下一页 →</button>
+</div>
+
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const pager = document.getElementById('pager');
+  const progress = document.getElementById('progress');
+  const slideNum = document.getElementById('slideNum');
+  let current = 0, presenterWin = null;
+
+  function goto(n){
+    current = Math.max(0, Math.min(n, slides.length - 1));
+    slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
+    pager.textContent = (current + 1) + ' / ' + slides.length;
+    progress.style.width = ((current + 1) / slides.length * 100) + '%';
+    if(slideNum) slideNum.textContent = (current + 1) + ' / ' + slides.length;
+    location.hash = '/' + (current + 1);
+    if(presenterWin && !presenterWin.closed) updatePresenter();
+  }
+
+  prevBtn.onclick = () => goto(current - 1);
+  nextBtn.onclick = () => goto(current + 1);
+
+  function getTitle(idx){
+    const s = slides[idx];
+    const h = s.querySelector('h1') || s.querySelector('h2');
+    return h ? h.textContent.trim() : 'Slide ' + (idx + 1);
+  }
+  function getNotes(idx){
+    const n = slides[idx].querySelector('.notes');
+    return n ? n.innerHTML.trim() : '<em style="color:#999">（本页无逐字稿）</em>';
+  }
+
+  function openPresenter(){
+    if(presenterWin && !presenterWin.closed){ presenterWin.focus(); return; }
+    presenterWin = window.open('', 'presenter', 'width=900,height=680,scrollbars=yes');
+    const doc = presenterWin.document;
+    doc.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>演讲者模式</title>
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:"XiaoLai","Xiaolai","小赖字体","Microsoft YaHei",system-ui,sans-serif; background:#1f2937; color:#fffdf8; padding:16px; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto 1fr auto; gap:12px; height:100vh; overflow:hidden; }
+      .card { background:#2d3748; border-radius:14px; overflow:hidden; }
+      .card-header { padding:10px 16px; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+      .h-current .card-header { background:#8f4d2e; }
+      .h-next .card-header { background:#d2a384; color:#1f2937; }
+      .h-script .card-header { background:#c4956a; color:#1f2937; }
+      .h-timer .card-header { background:#f3e6da; color:#8f4d2e; }
+      .card-body { padding:16px; }
+      .slide-title { font-size:15px; color:#a0a0b0; margin-bottom:8px; }
+      .slide-preview { font-size:20px; font-weight:700; color:#fffdf8; }
+      #scriptBody { font-size:17px; line-height:1.85; color:#e8e0d8; overflow-y:auto; padding:16px; flex:1; min-height:0; }
+      #scriptBody strong, #scriptBody b { color:#d2a384; }
+      .timer-display { font-size:28px; font-weight:800; text-align:center; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#d2a384; padding:4px 0; }
+      .timer-slide { text-align:center; font-size:13px; color:#a0a0b0; margin-bottom:4px; }
+      .timer-btns { display:flex; gap:8px; justify-content:center; padding-bottom:4px; }
+      .timer-btns button { padding:5px 14px; border:none; border-radius:6px; background:#3d4a5c; color:#fffdf8; font-size:12px; cursor:pointer; font-weight:600; transition:background .2s; font-family:inherit; }
+      .timer-btns button:hover { background:#4d5a6c; }
+    </style></head><body>
+      <div class="card h-current" style="grid-column:1"><div class="card-header">当前</div><div class="card-body"><div class="slide-title" id="pCurTitle"></div><div class="slide-preview" id="pCurPreview"></div></div></div>
+      <div class="card h-next" style="grid-column:2"><div class="card-header">下一页</div><div class="card-body"><div class="slide-title" id="pNextTitle"></div><div class="slide-preview" id="pNextPreview"></div></div></div>
+      <div class="card h-script" style="grid-column:1/3;display:flex;flex-direction:column;min-height:0;overflow:hidden"><div class="card-header">逐字稿 / Speaker Script</div><div id="scriptBody"></div></div>
+      <div class="card h-timer" style="grid-column:1/3"><div class="card-header" style="padding:6px 16px;font-size:11px">计时器</div><div class="card-body" style="padding:6px 16px">
+        <div class="timer-slide" id="pSlideCount"></div>
+        <div class="timer-display" id="pTimer">00:00</div>
+        <div class="timer-btns"><button onclick="prev()">◀ 上一页</button><button onclick="resetTimer()">⟳ 重置</button><button onclick="next()">下一页 ▶</button></div>
+      </div></div>
+    </body></html>`);
+    doc.close();
+
+    let startTime = Date.now();
+    presenterWin._timerInterval = setInterval(() => {
+      if(presenterWin.closed){ clearInterval(presenterWin._timerInterval); return; }
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      const el = presenterWin.document.getElementById('pTimer');
+      if(el) el.textContent = m + ':' + s;
+    }, 500);
+
+    presenterWin.resetTimer = () => { startTime = Date.now(); };
+    presenterWin.prev = () => { goto(current - 1); };
+    presenterWin.next = () => { goto(current + 1); };
+    presenterWin.document.addEventListener('keydown', (e) => {
+      if(e.key === 'ArrowRight') goto(current + 1);
+      else if(e.key === 'ArrowLeft') goto(current - 1);
+      else if(e.key === 'r' || e.key === 'R') presenterWin.resetTimer();
+      else if(e.key === 'Escape') presenterWin.close();
+    });
+
+    updatePresenter();
+  }
+
+  function updatePresenter(){
+    if(!presenterWin || presenterWin.closed) return;
+    const doc = presenterWin.document;
+    const cur = doc.getElementById('pCurTitle');
+    const curP = doc.getElementById('pCurPreview');
+    const nxtT = doc.getElementById('pNextTitle');
+    const nxtP = doc.getElementById('pNextPreview');
+    const script = doc.getElementById('scriptBody');
+    const count = doc.getElementById('pSlideCount');
+    if(cur) cur.textContent = 'Slide ' + (current + 1);
+    if(curP) curP.textContent = getTitle(current);
+    if(current < slides.length - 1){
+      if(nxtT) nxtT.textContent = 'Slide ' + (current + 2);
+      if(nxtP) nxtP.textContent = getTitle(current + 1);
+    } else {
+      if(nxtT) nxtT.textContent = '';
+      if(nxtP) nxtP.textContent = '— 最后一页 —';
+    }
+    if(script) script.innerHTML = getNotes(current);
+    if(count) count.textContent = 'Slide ' + (current + 1) + ' / ' + slides.length;
+  }
+
+  document.addEventListener('keydown', e => {
+    if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); goto(current + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goto(current - 1); }
+    else if(e.key === 'Home') goto(0);
+    else if(e.key === 'End') goto(slides.length - 1);
+    else if(e.key === 'f' || e.key === 'F'){
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    else if(e.key === 's' || e.key === 'S') openPresenter();
+  });
+
+  const hash = parseInt(location.hash.replace('#/', ''));
+  if(hash >= 1 && hash <= slides.length) current = hash - 1;
+  goto(current);
+})();
+</script>
+</body>
+</html>
