@@ -1,0 +1,23 @@
+# 生成产物：注入字体后的 HTML 不入库（体积大）
+# 但 examples/ 下的样例 HTML 是已注入的展示成品，需要入库
+test-output/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# 系统/编辑器
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 临时文件
+*.tmp
+*.log

@@ -2,7 +2,7 @@
 // 这是一个「占位入口」——它告诉 Claude：这个技能已就绪，等用户输入后就会正式生成
 export const skill = {
   name: "presentation-maker",
-  description: "生成教学科普型、单文件 HTML 演示稿，含演讲者模式、纸感设计、逐字稿支持。",
+  description: "生成教学科普型、单文件 HTML 演示稿，含演讲者模式、16:9 手绘纸感设计、逐字稿支持。",
   triggers: [
     "演示", "PPT", "slides", "deck", "presentation",
     "技术分享", "做一份 slides", "幻灯片", "演讲稿", "讲义"
