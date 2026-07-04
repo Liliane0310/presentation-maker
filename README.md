@@ -2,6 +2,16 @@
 
 一个专为「讲给人听」设计的 Claude 技能：一键生成**教学科普型、自包含 HTML 演示稿**，无需联网、不依赖外部资源，打开即用。默认采用手绘纸感 16:9 演示文稿风格，像一套精致的纸质手写讲义。
 
+## 快速安装
+
+```bash
+npx skills add https://github.com/Liliane0310/presentation-maker -g -y
+```
+
+装完在 Claude Code 里说「做一份关于 X 的 slides」即可触发。
+
+## 特性
+
 ✨ 特性亮点：
 - 📄 单个 `.html` 文件（双击就能看，支持手机/电脑）
 - 🎤 内置演讲者模式（按 `S` 键开启，含计时器+逐字稿+下一页预览）
@@ -35,17 +45,59 @@ pip install fonttools brotli
 python scripts/subset-font.py   # 默认读 D:/讯飞实习/xiaolai.ttf，输出到 assets/xiaolai.woff2
 ```
 
-## 安装与使用
+## 安装
 
-作为 Claude Code skill，把整个目录放到 `~/.claude/skills/presentation-maker/` 即可。Claude 会在你说「做一份 slides」「生成 PPT」等触发词时自动调用。
+### 方式一：一键安装（推荐）
 
-生成演示稿后，Claude 会自动运行字体注入脚本。如果你手动生成或修改了 HTML，需要手动运行：
+```bash
+npx skills add https://github.com/Liliane0310/presentation-maker -g -y
+```
+
+- `-g` 全局安装（用户级，所有项目可用，装到 `~/.claude/skills/`）
+- `-y` 跳过确认
+- 不加 `-g` 则装到当前项目级（`.claude/skills/`）
+
+装完后，在 Claude Code 里说「做一份 slides」「生成 PPT」「演示一下 X」等触发词就会自动调用。
+
+更新到最新版：
+
+```bash
+npx skills update presentation-maker -g
+```
+
+卸载：
+
+```bash
+npx skills remove presentation-maker -g
+```
+
+### 方式二：手动 git clone
+
+如果 `npx skills` 不可用或网络受限：
+
+```bash
+git clone https://github.com/Liliane0310/presentation-maker.git ~/.claude/skills/presentation-maker
+```
+
+## 使用
+
+在 Claude Code 中直接说需求即可，例如：
+
+- 「做一份关于 MCP 的 15 页 slides，听众是产品经理」
+- 「生成一个 PPT 讲 RAG，要带案例」
+- 「做份演示稿讲提示词工程」
+
+Claude 会先出大纲和你确认，确认后生成完整 HTML，并自动运行字体注入脚本把小赖字体以 base64 内嵌进 HTML。
+
+如果你手动修改了生成的 HTML（比如改了内容），需要重新跑一次注入：
 
 ```bash
 python scripts/embed-font.py path/to/your-deck.html
 ```
 
-依赖：Python 3.8+（仅生成阶段需要，运行阶段不需要）。
+注入是幂等的，重复运行会自动跳过。
+
+依赖：Python 3.8+（仅生成阶段需要，看 HTML 不需要）。
 
 🎯 适合场景：新人培训、技术分享、产品讲解、课堂教案、内部汇报。
 
